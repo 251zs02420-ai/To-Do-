@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>シンプル To-Do リスト</title>
+    <title>保存できる To-Do リスト</title>
     <style>
         /* --- CSS (デザイン) --- */
         body {
@@ -11,8 +11,8 @@
             background-color: #e9eff5;
             display: flex;
             justify-content: center;
-            align-items: center; /* 画面の真ん中に持ってくる */
-            min-height: 100vh; /* 最低でも画面いっぱいの高さ */
+            align-items: center;
+            min-height: 100vh;
             margin: 0;
             color: #333;
         }
@@ -32,7 +32,6 @@
             margin-top: 0;
         }
 
-        /* 入力エリアのデザイン */
         .input-group {
             display: flex;
             gap: 10px;
@@ -40,7 +39,7 @@
         }
 
         input[type="text"] {
-            flex-grow: 1; /* 横幅いっぱいに広げる */
+            flex-grow: 1;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -67,9 +66,8 @@
             background-color: #357abd;
         }
 
-        /* リストのデザイン */
         ul {
-            list-style: none; /* ・を消す */
+            list-style: none;
             padding: 0;
             margin: 0;
         }
@@ -83,6 +81,7 @@
             align-items: center;
             transition: all 0.2s;
             cursor: pointer;
+            user-select: none; /* 文字選択を防ぐ */
         }
 
         li:last-child {
@@ -94,12 +93,18 @@
         }
 
         /* 完了したタスクのデザイン */
-        li.completed span {
+        li.checked span {
             text-decoration: line-through;
             color: #888;
         }
+        
+        /* チェックマークのアイコン */
+        li.checked::before {
+            content: '✔';
+            color: #4a90e2;
+            margin-right: 10px;
+        }
 
-        /* 削除ボタンのデザイン */
         .delete-btn {
             background-color: #ff6b6b;
             color: white;
@@ -119,10 +124,10 @@
 <body>
 
     <div class="container">
-        <h1>To-Do List</h1>
+        <h1>My Tasks</h1>
         
         <div class="input-group">
-            <input type="text" id="todo-input" placeholder="新しいタスクを入力...">
+            <input type="text" id="todo-input" placeholder="タスクを入力...">
             <button id="add-btn">追加</button>
         </div>
 
@@ -131,65 +136,76 @@
     </div>
 
     <script>
-        // --- JavaScript (動き) ---
+        // --- JavaScript (保存機能付き) ---
 
-        // 要素を取得
         const inputBox = document.getElementById("todo-input");
-        const addBtn = document.getElementById("add-btn");
         const listContainer = document.getElementById("todo-list");
+        const addBtn = document.getElementById("add-btn");
 
-        // タスクを追加する関数
+        // 1. タスクを追加する関数
         function addTask() {
             if (inputBox.value === '') {
-                alert("タスクを入力してください！");
-                return;
+                alert("何か入力してください！");
+            } else {
+                let li = document.createElement("li");
+                
+                // 文字を表示する部分
+                let span = document.createElement("span");
+                span.innerHTML = inputBox.value;
+                li.appendChild(span);
+
+                // 削除ボタン
+                let deleteBtn = document.createElement("button");
+                deleteBtn.innerHTML = "削除"; // ×マークでもOK
+                deleteBtn.className = "delete-btn";
+                li.appendChild(deleteBtn);
+
+                listContainer.appendChild(li);
             }
-
-            // liタグ（リストの項目）を作成
-            let li = document.createElement("li");
-
-            // テキストを入れるspanタグを作成
-            let span = document.createElement("span");
-            span.innerHTML = inputBox.value;
-            li.appendChild(span); // liの中にspanを入れる
-
-            // 削除ボタンを作成
-            let deleteBtn = document.createElement("button");
-            deleteBtn.innerHTML = "削除";
-            deleteBtn.className = "delete-btn";
-            li.appendChild(deleteBtn); // liの中に削除ボタンを入れる
-
-            // リスト全体（ul）に作成したliを追加
-            listContainer.appendChild(li);
-
-            // 入力欄を空にする
             inputBox.value = "";
+            saveData(); // ★追加したら保存！
         }
 
-        // 「追加」ボタンをクリックした時の動作
-        addBtn.addEventListener("click", addTask);
-
-        // 入力欄でEnterキーを押した時も追加できるようにする
-        inputBox.addEventListener("keypress", function(e) {
-            if (e.key === 'Enter') {
-                addTask();
-            }
-        });
-
-        // リスト内のクリック動作（完了 or 削除）
+        // 2. クリック操作（完了・削除）
         listContainer.addEventListener("click", function(e) {
-            
-            // クリックされたのが「LI」または「SPAN」なら完了状態を切り替え
+            // クリックした場所が LI または SPAN なら「完了」切り替え
             if (e.target.tagName === "LI" || e.target.tagName === "SPAN") {
-                // クリックされた要素がspanなら、親のliを探す
+                // spanをクリックした場合は親のliを取得、そうでなければliそのものを使う
                 let targetLi = e.target.tagName === "SPAN" ? e.target.parentElement : e.target;
-                targetLi.classList.toggle("completed");
+                targetLi.classList.toggle("checked");
+                saveData(); // ★変更したら保存！
             }
-            // クリックされたのが「削除ボタン」なら消す
+            // クリックした場所が 削除ボタン なら「削除」
             else if (e.target.tagName === "BUTTON") {
                 e.target.parentElement.remove();
+                saveData(); // ★削除したら保存！
             }
         }, false);
+
+        // ボタンとEnterキーのイベント設定
+        addBtn.addEventListener("click", addTask);
+        inputBox.addEventListener("keypress", function(e) {
+            if (e.key === 'Enter') addTask();
+        });
+
+        // --- ★ここが保存機能の心臓部 ---
+
+        // データをブラウザに保存する関数
+        function saveData() {
+            // リストの中身(HTML)をそのまま保存します
+            localStorage.setItem("myTodoData", listContainer.innerHTML);
+        }
+
+        // データを読み込む関数
+        function showTask() {
+            // 保存されたデータがあれば、リストの中に戻します
+            if (localStorage.getItem("myTodoData")) {
+                listContainer.innerHTML = localStorage.getItem("myTodoData");
+            }
+        }
+
+        // ページを開いた瞬間にデータを読み込む
+        showTask();
 
     </script>
 </body>
