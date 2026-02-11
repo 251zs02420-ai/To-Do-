@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シンプル To-Do リスト</title>
+    <style>
+        /* --- CSS (デザイン) --- */
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: #e9eff5;
+            display: flex;
+            justify-content: center;
+            align-items: center; /* 画面の真ん中に持ってくる */
+            min-height: 100vh; /* 最低でも画面いっぱいの高さ */
+            margin: 0;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-top: 0;
+        }
+
+        /* 入力エリアのデザイン */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex-grow: 1; /* 横幅いっぱいに広げる */
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: #4a90e2;
+        }
+
+        #add-btn {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        #add-btn:hover {
+            background-color: #357abd;
+        }
+
+        /* リストのデザイン */
+        ul {
+            list-style: none; /* ・を消す */
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+
+        li:hover {
+            background-color: #fafafa;
+        }
+
+        /* 完了したタスクのデザイン */
+        li.completed span {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        /* 削除ボタンのデザイン */
+        .delete-btn {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .delete-btn:hover {
+            background-color: #e55050;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>To-Do List</h1>
+        
+        <div class="input-group">
+            <input type="text" id="todo-input" placeholder="新しいタスクを入力...">
+            <button id="add-btn">追加</button>
+        </div>
+
+        <ul id="todo-list">
+            </ul>
+    </div>
+
+    <script>
+        // --- JavaScript (動き) ---
+
+        // 要素を取得
+        const inputBox = document.getElementById("todo-input");
+        const addBtn = document.getElementById("add-btn");
+        const listContainer = document.getElementById("todo-list");
+
+        // タスクを追加する関数
+        function addTask() {
+            if (inputBox.value === '') {
+                alert("タスクを入力してください！");
+                return;
+            }
+
+            // liタグ（リストの項目）を作成
+            let li = document.createElement("li");
+
+            // テキストを入れるspanタグを作成
+            let span = document.createElement("span");
+            span.innerHTML = inputBox.value;
+            li.appendChild(span); // liの中にspanを入れる
+
+            // 削除ボタンを作成
+            let deleteBtn = document.createElement("button");
+            deleteBtn.innerHTML = "削除";
+            deleteBtn.className = "delete-btn";
+            li.appendChild(deleteBtn); // liの中に削除ボタンを入れる
+
+            // リスト全体（ul）に作成したliを追加
+            listContainer.appendChild(li);
+
+            // 入力欄を空にする
+            inputBox.value = "";
+        }
+
+        // 「追加」ボタンをクリックした時の動作
+        addBtn.addEventListener("click", addTask);
+
+        // 入力欄でEnterキーを押した時も追加できるようにする
+        inputBox.addEventListener("keypress", function(e) {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        });
+
+        // リスト内のクリック動作（完了 or 削除）
+        listContainer.addEventListener("click", function(e) {
+            
+            // クリックされたのが「LI」または「SPAN」なら完了状態を切り替え
+            if (e.target.tagName === "LI" || e.target.tagName === "SPAN") {
+                // クリックされた要素がspanなら、親のliを探す
+                let targetLi = e.target.tagName === "SPAN" ? e.target.parentElement : e.target;
+                targetLi.classList.toggle("completed");
+            }
+            // クリックされたのが「削除ボタン」なら消す
+            else if (e.target.tagName === "BUTTON") {
+                e.target.parentElement.remove();
+            }
+        }, false);
+
+    </script>
+</body>
+</html>
